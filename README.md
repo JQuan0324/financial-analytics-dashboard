@@ -2,7 +2,7 @@
 
 A multi-page Streamlit dashboard for portfolio analysis, stock screening, and options pricing — built for traders, analysts, and finance professionals.
 
-**Live Demo:** *(deploy link here)*
+**Live Demo:** *https://jquan0324-financial-analytics-dashboard-app-lztk1h.streamlit.app*
 
 ---
 
