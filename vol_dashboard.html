@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vol Dashboard — BTC</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Outfit:wght@300;400;600;700&display=swap');
+
+:root {
+    --bg: #0a0a0f;
+    --bg2: #12121a;
+    --bg3: #1a1a25;
+    --border: #2a2a3a;
+    --text: #e0e0e8;
+    --text2: #8888aa;
+    --green: #00e676;
+    --red: #ff5252;
+    --blue: #448aff;
+    --purple: #b388ff;
+    --orange: #ffab40;
+    --cyan: #18ffff;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+}
+.header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+.header h1 span { color: var(--cyan); }
+.timestamp { color: var(--text2); font-size: 14px; font-family: 'JetBrains Mono', monospace; }
+
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+}
+.card-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text2); margin-bottom: 8px; }
+.card-value { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; }
+.card-sub { font-size: 13px; color: var(--text2); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+
+.pos { color: var(--green); }
+.neg { color: var(--red); }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+}
+th {
+    text-align: left;
+    padding: 10px 8px;
+    color: var(--text2);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--border);
+}
+td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.signal {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+}
+.signal.sell { background: rgba(255,82,82,0.15); color: var(--red); border: 1px solid var(--red); }
+.signal.buy { background: rgba(0,230,118,0.15); color: var(--green); border: 1px solid var(--green); }
+.signal.neutral { background: rgba(136,136,170,0.1); color: var(--text2); border: 1px solid var(--border); }
+
+.greeks-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.greek-card {
+    background: var(--bg3);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+}
+.greek-label { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+.greek-value { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 600; }
+
+.vrp-bar {
+    height: 8px;
+    background: var(--bg3);
+    border-radius: 4px;
+    margin-top: 12px;
+    position: relative;
+    overflow: hidden;
+}
+.vrp-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s;
+}
+
+canvas { width: 100% !important; height: 300px !important; }
+
+.iv-table { max-height: 300px; overflow-y: auto; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1><span>◆</span> VOL DASHBOARD — BTC</h1>
+    <div>
+        <div class="timestamp">2026-04-08 06:15 UTC</div>
+        <div style="margin-top:8px;text-align:right"><span class="signal neutral">⚪ NO SIGNAL</span></div>
+    </div>
+</div>
+
+<!-- Top Cards -->
+<div class="grid">
+    <div class="card">
+        <div class="card-label">BTC Price</div>
+        <div class="card-value">$71,800</div>
+    </div>
+    <div class="card">
+        <div class="card-label">Implied Vol (ATM)</div>
+        <div class="card-value">43.0%</div>
+        <div class="card-sub">7-21d avg</div>
+    </div>
+    <div class="card">
+        <div class="card-label">Realized Vol (14d)</div>
+        <div class="card-value">43.5%</div>
+        <div class="card-sub">7d: 45.6% | 30d: 42.2%</div>
+    </div>
+    <div class="card">
+        <div class="card-label">VRP (IV - RV)</div>
+        <div class="card-value neg">-0.5%</div>
+        <div class="card-sub">Sell threshold: 15.0%</div>
+        <div class="vrp-bar">
+            <div class="vrp-fill" style="width:0%;background:var(--blue)"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Account + Greeks -->
+<div class="grid2">
+    <div class="card">
+        <div class="section-title">Account</div>
+        <table>
+            <tr><td style="color:var(--text2)">Equity</td><td style="text-align:right">99.9995 BTC</td></tr>
+            <tr><td style="color:var(--text2)">Balance</td><td style="text-align:right">100.0060 BTC</td></tr>
+            <tr><td style="color:var(--text2)">Unrealized PNL</td>
+                <td style="text-align:right" class="neg">-0.0003 BTC</td></tr>
+            <tr><td style="color:var(--text2)">PNL (USD)</td>
+                <td style="text-align:right" class="neg">$-19</td></tr>
+        </table>
+    </div>
+    <div class="card">
+        <div class="section-title">Portfolio Greeks</div>
+        <div class="greeks-grid">
+            <div class="greek-card">
+                <div class="greek-label">Delta</div>
+                <div class="greek-value neg">-0.0449</div>
+            </div>
+            <div class="greek-card">
+                <div class="greek-label">Gamma</div>
+                <div class="greek-value">-0.000020</div>
+            </div>
+            <div class="greek-card">
+                <div class="greek-label">Theta</div>
+                <div class="greek-value pos">+19.0905</div>
+            </div>
+            <div class="greek-card">
+                <div class="greek-label">Vega</div>
+                <div class="greek-value">-7.5660</div>
+            </div>
+        </div>
+        <div style="margin-top:12px;font-size:13px;color:var(--text2)">
+            Theta/day: ~$1,370,695 支出
+        </div>
+    </div>
+</div>
+
+<!-- Positions -->
+<div class="card" style="margin-bottom:24px">
+    <div class="section-title">Open Positions</div>
+    <div style="overflow-x:auto">
+    <table>
+        <thead>
+            <tr><th>Instrument</th><th>Size</th><th>Dir</th><th>Avg Price</th><th>Mark</th><th>PNL (BTC)</th><th>Delta</th><th>Gamma</th><th>Theta</th><th>Vega</th></tr>
+        </thead>
+        <tbody><tr>
+            <td>BTC-17APR26-69000-C</td>
+            <td>-0.1</td>
+            <td>sell</td>
+            <td>0.0340</td>
+            <td>0.0524</td>
+            <td class="neg">-0.0024</td>
+            <td>-0.0725</td>
+            <td>-0.000010</td>
+            <td>9.5452</td>
+            <td>-3.7830</td>
+        </tr><tr>
+            <td>BTC-17APR26-69000-P</td>
+            <td>-0.1</td>
+            <td>sell</td>
+            <td>0.0265</td>
+            <td>0.0127</td>
+            <td class="pos">0.0021</td>
+            <td>0.0275</td>
+            <td>-0.000010</td>
+            <td>9.5452</td>
+            <td>-3.7830</td>
+        </tr></tbody>
+    </table>
+    </div>
+</div>
+
+<!-- IV Curve -->
+<div class="grid2">
+    <div class="card">
+        <div class="section-title">ATM IV Term Structure</div>
+        <div class="iv-table">
+        <table>
+            <thead><tr><th>Instrument</th><th>DTE</th><th>Strike</th><th>IV %</th></tr></thead>
+            <tbody>
+            <tr><td>BTC-9APR26-70000-C</td><td>1</td><td>$70,000</td><td>44.9%</td></tr><tr><td>BTC-9APR26-70000-P</td><td>1</td><td>$70,000</td><td>44.9%</td></tr><tr><td>BTC-9APR26-70500-C</td><td>1</td><td>$70,500</td><td>42.4%</td></tr><tr><td>BTC-9APR26-70500-P</td><td>1</td><td>$70,500</td><td>42.5%</td></tr><tr><td>BTC-9APR26-71000-C</td><td>1</td><td>$71,000</td><td>40.9%</td></tr><tr><td>BTC-9APR26-71000-P</td><td>1</td><td>$71,000</td><td>40.9%</td></tr><tr><td>BTC-9APR26-71500-C</td><td>1</td><td>$71,500</td><td>39.8%</td></tr><tr><td>BTC-9APR26-71500-P</td><td>1</td><td>$71,500</td><td>39.8%</td></tr><tr><td>BTC-9APR26-72000-C</td><td>1</td><td>$72,000</td><td>39.6%</td></tr><tr><td>BTC-9APR26-72000-P</td><td>1</td><td>$72,000</td><td>39.6%</td></tr><tr><td>BTC-9APR26-72500-C</td><td>1</td><td>$72,500</td><td>39.5%</td></tr><tr><td>BTC-9APR26-72500-P</td><td>1</td><td>$72,500</td><td>39.5%</td></tr><tr><td>BTC-9APR26-73000-C</td><td>1</td><td>$73,000</td><td>39.5%</td></tr><tr><td>BTC-9APR26-73000-P</td><td>1</td><td>$73,000</td><td>39.5%</td></tr><tr><td>BTC-10APR26-70000-C</td><td>2</td><td>$70,000</td><td>44.6%</td></tr><tr><td>BTC-10APR26-70000-P</td><td>2</td><td>$70,000</td><td>44.6%</td></tr><tr><td>BTC-10APR26-70500-C</td><td>2</td><td>$70,500</td><td>43.4%</td></tr><tr><td>BTC-10APR26-70500-P</td><td>2</td><td>$70,500</td><td>43.4%</td></tr><tr><td>BTC-10APR26-71000-C</td><td>2</td><td>$71,000</td><td>43.0%</td></tr><tr><td>BTC-10APR26-71000-P</td><td>2</td><td>$71,000</td><td>43.0%</td></tr><tr><td>BTC-10APR26-71500-C</td><td>2</td><td>$71,500</td><td>41.8%</td></tr><tr><td>BTC-10APR26-71500-P</td><td>2</td><td>$71,500</td><td>41.8%</td></tr><tr><td>BTC-10APR26-72000-C</td><td>2</td><td>$72,000</td><td>40.8%</td></tr><tr><td>BTC-10APR26-72000-P</td><td>2</td><td>$72,000</td><td>40.8%</td></tr><tr><td>BTC-10APR26-72500-C</td><td>2</td><td>$72,500</td><td>40.4%</td></tr><tr><td>BTC-10APR26-72500-P</td><td>2</td><td>$72,500</td><td>40.4%</td></tr><tr><td>BTC-10APR26-73000-C</td><td>2</td><td>$73,000</td><td>40.5%</td></tr><tr><td>BTC-10APR26-73000-P</td><td>2</td><td>$73,000</td><td>40.5%</td></tr><tr><td>BTC-11APR26-70000-C</td><td>3</td><td>$70,000</td><td>44.5%</td></tr><tr><td>BTC-11APR26-70000-P</td><td>3</td><td>$70,000</td><td>44.5%</td></tr><tr><td>BTC-11APR26-70500-C</td><td>3</td><td>$70,500</td><td>43.4%</td></tr><tr><td>BTC-11APR26-70500-P</td><td>3</td><td>$70,500</td><td>43.4%</td></tr><tr><td>BTC-11APR26-71000-C</td><td>3</td><td>$71,000</td><td>40.9%</td></tr><tr><td>BTC-11APR26-71000-P</td><td>3</td><td>$71,000</td><td>40.8%</td></tr><tr><td>BTC-11APR26-71500-C</td><td>3</td><td>$71,500</td><td>40.8%</td></tr><tr><td>BTC-11APR26-71500-P</td><td>3</td><td>$71,500</td><td>40.8%</td></tr><tr><td>BTC-11APR26-72000-C</td><td>3</td><td>$72,000</td><td>41.6%</td></tr><tr><td>BTC-11APR26-72000-P</td><td>3</td><td>$72,000</td><td>41.6%</td></tr><tr><td>BTC-11APR26-72500-C</td><td>3</td><td>$72,500</td><td>40.4%</td></tr><tr><td>BTC-11APR26-72500-P</td><td>3</td><td>$72,500</td><td>40.4%</td></tr><tr><td>BTC-11APR26-73000-C</td><td>3</td><td>$73,000</td><td>40.4%</td></tr><tr><td>BTC-11APR26-73000-P</td><td>3</td><td>$73,000</td><td>40.4%</td></tr><tr><td>BTC-11APR26-73500-C</td><td>3</td><td>$73,500</td><td>40.4%</td></tr><tr><td>BTC-11APR26-73500-P</td><td>3</td><td>$73,500</td><td>40.4%</td></tr><tr><td>BTC-17APR26-70000-C</td><td>9</td><td>$70,000</td><td>44.5%</td></tr><tr><td>BTC-17APR26-70000-P</td><td>9</td><td>$70,000</td><td>44.5%</td></tr><tr><td>BTC-17APR26-71000-C</td><td>9</td><td>$71,000</td><td>43.4%</td></tr><tr><td>BTC-17APR26-71000-P</td><td>9</td><td>$71,000</td><td>43.4%</td></tr><tr><td>BTC-17APR26-72000-C</td><td>9</td><td>$72,000</td><td>41.7%</td></tr><tr><td>BTC-17APR26-72000-P</td><td>9</td><td>$72,000</td><td>41.6%</td></tr><tr><td>BTC-17APR26-73000-C</td><td>9</td><td>$73,000</td><td>42.2%</td></tr><tr><td>BTC-17APR26-73000-P</td><td>9</td><td>$73,000</td><td>42.2%</td></tr><tr><td>BTC-24APR26-70000-C</td><td>16</td><td>$70,000</td><td>44.3%</td></tr><tr><td>BTC-24APR26-70000-P</td><td>16</td><td>$70,000</td><td>44.3%</td></tr><tr><td>BTC-24APR26-71000-C</td><td>16</td><td>$71,000</td><td>43.3%</td></tr><tr><td>BTC-24APR26-71000-P</td><td>16</td><td>$71,000</td><td>43.3%</td></tr><tr><td>BTC-24APR26-72000-C</td><td>16</td><td>$72,000</td><td>42.7%</td></tr><tr><td>BTC-24APR26-72000-P</td><td>16</td><td>$72,000</td><td>42.7%</td></tr><tr><td>BTC-24APR26-73000-C</td><td>16</td><td>$73,000</td><td>41.5%</td></tr><tr><td>BTC-24APR26-73000-P</td><td>16</td><td>$73,000</td><td>41.5%</td></tr><tr><td>BTC-29MAY26-70000-C</td><td>51</td><td>$70,000</td><td>43.0%</td></tr><tr><td>BTC-29MAY26-70000-P</td><td>51</td><td>$70,000</td><td>43.0%</td></tr><tr><td>BTC-29MAY26-71000-C</td><td>51</td><td>$71,000</td><td>42.9%</td></tr><tr><td>BTC-29MAY26-71000-P</td><td>51</td><td>$71,000</td><td>42.9%</td></tr><tr><td>BTC-29MAY26-72000-C</td><td>51</td><td>$72,000</td><td>42.9%</td></tr><tr><td>BTC-29MAY26-72000-P</td><td>51</td><td>$72,000</td><td>42.9%</td></tr><tr><td>BTC-29MAY26-73000-C</td><td>51</td><td>$73,000</td><td>42.0%</td></tr><tr><td>BTC-29MAY26-73000-P</td><td>51</td><td>$73,000</td><td>42.0%</td></tr><tr><td>BTC-26JUN26-70000-C</td><td>79</td><td>$70,000</td><td>44.2%</td></tr><tr><td>BTC-26JUN26-70000-P</td><td>79</td><td>$70,000</td><td>44.2%</td></tr><tr><td>BTC-26JUN26-72000-C</td><td>79</td><td>$72,000</td><td>43.5%</td></tr><tr><td>BTC-26JUN26-72000-P</td><td>79</td><td>$72,000</td><td>43.5%</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+    <div class="card">
+        <div class="section-title">Vol Surface</div>
+        <canvas id="volChart"></canvas>
+    </div>
+</div>
+
+<!-- Vol Surface Chart -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const vsData = [{"strike": 62000.0, "dte": 3, "type": "call", "iv": 70.85}, {"strike": 62000.0, "dte": 3, "type": "put", "iv": 70.85}, {"strike": 63000.0, "dte": 3, "type": "call", "iv": 67.21}, {"strike": 63000.0, "dte": 3, "type": "put", "iv": 67.21}, {"strike": 64000.0, "dte": 3, "type": "call", "iv": 63.51}, {"strike": 64000.0, "dte": 3, "type": "put", "iv": 63.51}, {"strike": 65000.0, "dte": 3, "type": "call", "iv": 59.31}, {"strike": 65000.0, "dte": 3, "type": "put", "iv": 59.31}, {"strike": 65500.0, "dte": 3, "type": "call", "iv": 57.95}, {"strike": 65500.0, "dte": 3, "type": "put", "iv": 57.95}, {"strike": 66000.0, "dte": 3, "type": "call", "iv": 55.74}, {"strike": 66000.0, "dte": 3, "type": "put", "iv": 55.73}, {"strike": 66500.0, "dte": 3, "type": "call", "iv": 53.15}, {"strike": 66500.0, "dte": 3, "type": "put", "iv": 53.15}, {"strike": 67000.0, "dte": 3, "type": "call", "iv": 51.03}, {"strike": 67000.0, "dte": 3, "type": "put", "iv": 51.03}, {"strike": 67500.0, "dte": 3, "type": "call", "iv": 51.02}, {"strike": 67500.0, "dte": 3, "type": "put", "iv": 51.03}, {"strike": 68000.0, "dte": 3, "type": "call", "iv": 49.13}, {"strike": 68000.0, "dte": 3, "type": "put", "iv": 49.13}, {"strike": 68500.0, "dte": 3, "type": "call", "iv": 47.56}, {"strike": 68500.0, "dte": 3, "type": "put", "iv": 47.56}, {"strike": 69000.0, "dte": 3, "type": "call", "iv": 46.71}, {"strike": 69000.0, "dte": 3, "type": "put", "iv": 46.73}, {"strike": 69500.0, "dte": 3, "type": "call", "iv": 45.92}, {"strike": 69500.0, "dte": 3, "type": "put", "iv": 45.92}, {"strike": 70000.0, "dte": 3, "type": "call", "iv": 44.66}, {"strike": 70000.0, "dte": 3, "type": "put", "iv": 44.66}, {"strike": 70500.0, "dte": 3, "type": "call", "iv": 43.06}, {"strike": 70500.0, "dte": 3, "type": "put", "iv": 43.03}, {"strike": 71000.0, "dte": 3, "type": "call", "iv": 40.59}, {"strike": 71000.0, "dte": 3, "type": "put", "iv": 40.59}, {"strike": 71500.0, "dte": 3, "type": "call", "iv": 40.57}, {"strike": 71500.0, "dte": 3, "type": "put", "iv": 40.57}, {"strike": 72000.0, "dte": 3, "type": "call", "iv": 41.29}, {"strike": 72000.0, "dte": 3, "type": "put", "iv": 41.29}, {"strike": 72500.0, "dte": 3, "type": "call", "iv": 40.6}, {"strike": 72500.0, "dte": 3, "type": "put", "iv": 40.6}, {"strike": 73000.0, "dte": 3, "type": "call", "iv": 40.6}, {"strike": 73000.0, "dte": 3, "type": "put", "iv": 40.6}, {"strike": 73500.0, "dte": 3, "type": "call", "iv": 40.59}, {"strike": 73500.0, "dte": 3, "type": "put", "iv": 40.59}, {"strike": 74000.0, "dte": 3, "type": "call", "iv": 40.59}, {"strike": 74000.0, "dte": 3, "type": "put", "iv": 40.58}, {"strike": 75000.0, "dte": 3, "type": "call", "iv": 40.58}, {"strike": 75000.0, "dte": 3, "type": "put", "iv": 40.58}, {"strike": 76000.0, "dte": 3, "type": "call", "iv": 41.46}, {"strike": 76000.0, "dte": 3, "type": "put", "iv": 41.46}, {"strike": 77000.0, "dte": 3, "type": "call", "iv": 42.93}, {"strike": 77000.0, "dte": 3, "type": "put", "iv": 42.93}, {"strike": 78000.0, "dte": 3, "type": "call", "iv": 45.39}, {"strike": 78000.0, "dte": 3, "type": "put", "iv": 45.39}, {"strike": 79000.0, "dte": 3, "type": "call", "iv": 48.89}, {"strike": 79000.0, "dte": 3, "type": "put", "iv": 48.89}, {"strike": 80000.0, "dte": 3, "type": "call", "iv": 51.03}, {"strike": 80000.0, "dte": 3, "type": "put", "iv": 51.03}, {"strike": 62000.0, "dte": 9, "type": "call", "iv": 56.97}, {"strike": 62000.0, "dte": 9, "type": "put", "iv": 56.97}, {"strike": 63000.0, "dte": 9, "type": "call", "iv": 54.79}, {"strike": 63000.0, "dte": 9, "type": "put", "iv": 54.79}, {"strike": 64000.0, "dte": 9, "type": "call", "iv": 53.04}, {"strike": 64000.0, "dte": 9, "type": "put", "iv": 53.02}, {"strike": 65000.0, "dte": 9, "type": "call", "iv": 51.44}, {"strike": 65000.0, "dte": 9, "type": "put", "iv": 51.44}, {"strike": 66000.0, "dte": 9, "type": "call", "iv": 49.57}, {"strike": 66000.0, "dte": 9, "type": "put", "iv": 49.57}, {"strike": 67000.0, "dte": 9, "type": "call", "iv": 48.01}, {"strike": 67000.0, "dte": 9, "type": "put", "iv": 48.02}, {"strike": 68000.0, "dte": 9, "type": "call", "iv": 46.97}, {"strike": 68000.0, "dte": 9, "type": "put", "iv": 46.97}, {"strike": 69000.0, "dte": 9, "type": "call", "iv": 45.52}, {"strike": 69000.0, "dte": 9, "type": "put", "iv": 45.52}, {"strike": 70000.0, "dte": 9, "type": "call", "iv": 44.43}, {"strike": 70000.0, "dte": 9, "type": "put", "iv": 44.45}, {"strike": 71000.0, "dte": 9, "type": "call", "iv": 43.4}, {"strike": 71000.0, "dte": 9, "type": "put", "iv": 43.4}, {"strike": 72000.0, "dte": 9, "type": "call", "iv": 41.49}, {"strike": 72000.0, "dte": 9, "type": "put", "iv": 41.49}, {"strike": 73000.0, "dte": 9, "type": "call", "iv": 41.98}, {"strike": 73000.0, "dte": 9, "type": "put", "iv": 41.96}, {"strike": 74000.0, "dte": 9, "type": "call", "iv": 41.96}, {"strike": 74000.0, "dte": 9, "type": "put", "iv": 41.96}, {"strike": 75000.0, "dte": 9, "type": "call", "iv": 41.94}, {"strike": 75000.0, "dte": 9, "type": "put", "iv": 41.94}, {"strike": 76000.0, "dte": 9, "type": "call", "iv": 41.94}, {"strike": 76000.0, "dte": 9, "type": "put", "iv": 41.95}, {"strike": 80000.0, "dte": 9, "type": "call", "iv": 41.95}, {"strike": 80000.0, "dte": 9, "type": "put", "iv": 41.95}, {"strike": 62000.0, "dte": 16, "type": "call", "iv": 53.83}, {"strike": 62000.0, "dte": 16, "type": "put", "iv": 53.83}, {"strike": 63000.0, "dte": 16, "type": "call", "iv": 52.43}, {"strike": 63000.0, "dte": 16, "type": "put", "iv": 52.43}, {"strike": 64000.0, "dte": 16, "type": "call", "iv": 50.8}, {"strike": 64000.0, "dte": 16, "type": "put", "iv": 50.8}, {"strike": 65000.0, "dte": 16, "type": "call", "iv": 49.66}, {"strike": 65000.0, "dte": 16, "type": "put", "iv": 49.66}, {"strike": 66000.0, "dte": 16, "type": "call", "iv": 48.29}, {"strike": 66000.0, "dte": 16, "type": "put", "iv": 48.29}, {"strike": 67000.0, "dte": 16, "type": "call", "iv": 47.09}, {"strike": 67000.0, "dte": 16, "type": "put", "iv": 47.09}, {"strike": 68000.0, "dte": 16, "type": "call", "iv": 46.16}, {"strike": 68000.0, "dte": 16, "type": "put", "iv": 46.14}, {"strike": 69000.0, "dte": 16, "type": "call", "iv": 44.94}, {"strike": 69000.0, "dte": 16, "type": "put", "iv": 44.94}, {"strike": 70000.0, "dte": 16, "type": "call", "iv": 43.97}, {"strike": 70000.0, "dte": 16, "type": "put", "iv": 43.97}, {"strike": 71000.0, "dte": 16, "type": "call", "iv": 43.39}, {"strike": 71000.0, "dte": 16, "type": "put", "iv": 43.41}, {"strike": 72000.0, "dte": 16, "type": "call", "iv": 42.65}, {"strike": 72000.0, "dte": 16, "type": "put", "iv": 42.65}, {"strike": 73000.0, "dte": 16, "type": "call", "iv": 41.95}, {"strike": 73000.0, "dte": 16, "type": "put", "iv": 41.95}, {"strike": 74000.0, "dte": 16, "type": "call", "iv": 41.96}, {"strike": 74000.0, "dte": 16, "type": "put", "iv": 41.93}, {"strike": 75000.0, "dte": 16, "type": "call", "iv": 41.93}, {"strike": 75000.0, "dte": 16, "type": "put", "iv": 41.93}, {"strike": 76000.0, "dte": 16, "type": "call", "iv": 41.91}, {"strike": 76000.0, "dte": 16, "type": "put", "iv": 41.91}, {"strike": 77000.0, "dte": 16, "type": "call", "iv": 41.91}, {"strike": 77000.0, "dte": 16, "type": "put", "iv": 41.9}, {"strike": 78000.0, "dte": 16, "type": "call", "iv": 41.9}, {"strike": 78000.0, "dte": 16, "type": "put", "iv": 41.9}, {"strike": 79000.0, "dte": 16, "type": "call", "iv": 41.89}, {"strike": 79000.0, "dte": 16, "type": "put", "iv": 41.89}, {"strike": 80000.0, "dte": 16, "type": "call", "iv": 41.89}, {"strike": 80000.0, "dte": 16, "type": "put", "iv": 41.89}, {"strike": 81000.0, "dte": 16, "type": "call", "iv": 41.89}, {"strike": 81000.0, "dte": 16, "type": "put", "iv": 41.89}, {"strike": 82000.0, "dte": 16, "type": "call", "iv": 41.91}, {"strike": 82000.0, "dte": 16, "type": "put", "iv": 41.91}, {"strike": 62000.0, "dte": 51, "type": "call", "iv": 48.35}, {"strike": 62000.0, "dte": 51, "type": "put", "iv": 48.35}, {"strike": 63000.0, "dte": 51, "type": "call", "iv": 47.52}, {"strike": 63000.0, "dte": 51, "type": "put", "iv": 47.52}, {"strike": 64000.0, "dte": 51, "type": "call", "iv": 46.89}, {"strike": 64000.0, "dte": 51, "type": "put", "iv": 46.89}, {"strike": 65000.0, "dte": 51, "type": "call", "iv": 45.64}, {"strike": 65000.0, "dte": 51, "type": "put", "iv": 45.64}, {"strike": 66000.0, "dte": 51, "type": "call", "iv": 45.44}, {"strike": 66000.0, "dte": 51, "type": "put", "iv": 45.44}, {"strike": 67000.0, "dte": 51, "type": "call", "iv": 44.63}, {"strike": 67000.0, "dte": 51, "type": "put", "iv": 44.63}, {"strike": 68000.0, "dte": 51, "type": "call", "iv": 44.63}, {"strike": 68000.0, "dte": 51, "type": "put", "iv": 44.63}, {"strike": 69000.0, "dte": 51, "type": "call", "iv": 44.19}, {"strike": 69000.0, "dte": 51, "type": "put", "iv": 44.19}, {"strike": 70000.0, "dte": 51, "type": "call", "iv": 43.71}, {"strike": 70000.0, "dte": 51, "type": "put", "iv": 43.71}, {"strike": 71000.0, "dte": 51, "type": "call", "iv": 42.78}, {"strike": 71000.0, "dte": 51, "type": "put", "iv": 42.78}, {"strike": 72000.0, "dte": 51, "type": "call", "iv": 42.68}, {"strike": 72000.0, "dte": 51, "type": "put", "iv": 42.68}, {"strike": 73000.0, "dte": 51, "type": "call", "iv": 42.37}, {"strike": 73000.0, "dte": 51, "type": "put", "iv": 42.37}, {"strike": 74000.0, "dte": 51, "type": "call", "iv": 42.0}, {"strike": 74000.0, "dte": 51, "type": "put", "iv": 42.0}, {"strike": 75000.0, "dte": 51, "type": "call", "iv": 41.63}, {"strike": 75000.0, "dte": 51, "type": "put", "iv": 41.63}, {"strike": 76000.0, "dte": 51, "type": "call", "iv": 41.63}, {"strike": 76000.0, "dte": 51, "type": "put", "iv": 41.63}, {"strike": 77000.0, "dte": 51, "type": "call", "iv": 41.63}, {"strike": 77000.0, "dte": 51, "type": "put", "iv": 41.63}, {"strike": 78000.0, "dte": 51, "type": "call", "iv": 41.63}, {"strike": 78000.0, "dte": 51, "type": "put", "iv": 41.63}, {"strike": 79000.0, "dte": 51, "type": "call", "iv": 41.63}, {"strike": 79000.0, "dte": 51, "type": "put", "iv": 41.63}, {"strike": 80000.0, "dte": 51, "type": "call", "iv": 41.63}, {"strike": 80000.0, "dte": 51, "type": "put", "iv": 41.63}, {"strike": 81000.0, "dte": 51, "type": "call", "iv": 41.63}, {"strike": 81000.0, "dte": 51, "type": "put", "iv": 41.63}, {"strike": 82000.0, "dte": 51, "type": "call", "iv": 41.63}, {"strike": 82000.0, "dte": 51, "type": "put", "iv": 41.63}];
+
+if (vsData.length > 0) {
+    // Group by DTE
+    const byDte = {};
+    vsData.forEach(d => {
+        if (!byDte[d.dte]) byDte[d.dte] = [];
+        byDte[d.dte].push(d);
+    });
+    
+    const colors = ['#18ffff','#448aff','#b388ff','#ffab40','#ff5252','#00e676'];
+    const datasets = Object.keys(byDte).sort((a,b) => a-b).slice(0,6).map((dte, i) => {
+        const points = byDte[dte].sort((a,b) => a.strike - b.strike);
+        return {
+            label: dte + 'd',
+            data: points.map(p => ({x: p.strike, y: p.iv})),
+            borderColor: colors[i % colors.length],
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            pointRadius: 3,
+            tension: 0.3,
+        };
+    });
+    
+    new Chart(document.getElementById('volChart'), {
+        type: 'scatter',
+        data: { datasets },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#8888aa' } } },
+            scales: {
+                x: { title: { display: true, text: 'Strike', color: '#8888aa' }, ticks: { color: '#8888aa' }, grid: { color: '#2a2a3a' } },
+                y: { title: { display: true, text: 'IV %', color: '#8888aa' }, ticks: { color: '#8888aa' }, grid: { color: '#2a2a3a' } }
+            }
+        }
+    });
+}
+</script>
+
+</body>
+</html>
